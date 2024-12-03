@@ -63,6 +63,7 @@ const minifyPluginAssets = ( env ) => {
 				patterns: [
 					{
 						from: `${ sourcePath }/**/*.js`,
+						noErrorOnMissing: true,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.js$/, '.min.js' ),
 						// Exclude already-minified files and those in the build directory
@@ -72,6 +73,7 @@ const minifyPluginAssets = ( env ) => {
 					},
 					{
 						from: `${ sourcePath }/**/*.css`,
+						noErrorOnMissing: true,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.css$/, '.min.css' ),
 						transform: {
