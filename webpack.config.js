@@ -197,9 +197,11 @@ const buildPlugin = ( env ) => {
 	const buildDir = path.resolve( __dirname, 'build' );
 	const to = path.resolve( buildDir, env.plugin );
 	const from = path.resolve( __dirname, 'plugins', env.plugin );
-	const dependencies = pluginsWithBuild.includes( env.plugin )
-		? [ `${ env.plugin }` ]
-		: [];
+	const dependencies = [ 'minify-plugin-assets' ];
+
+	if ( pluginsWithBuild.includes( env.plugin ) ) {
+		dependencies.push( `${ env.plugin }` );
+	}
 
 	return {
 		...sharedConfig,
