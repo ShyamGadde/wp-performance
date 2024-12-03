@@ -40,9 +40,21 @@ const pluginsWithBuild = [ 'optimization-detective', 'web-worker-offloading' ];
 /**
  * Webpack Config: Minify Plugin Assets
  *
+ * @param {*} env Webpack environment
  * @return {Object} Webpack configuration
  */
-const minifyPluginAssets = () => {
+const minifyPluginAssets = ( env ) => {
+	if ( env.plugin && ! standalonePlugins.includes( env.plugin ) ) {
+		// eslint-disable-next-line no-console
+		console.error( `Plugin "${ env.plugin }" not found. Aborting.` );
+
+		return defaultBuildConfig;
+	}
+
+	const sourcePath = env.plugin
+		? path.resolve( __dirname, 'plugins', env.plugin )
+		: path.resolve( __dirname, 'plugins' );
+
 	return {
 		...sharedConfig,
 		name: 'minify-plugin-assets',
@@ -50,7 +62,7 @@ const minifyPluginAssets = () => {
 			new CopyWebpackPlugin( {
 				patterns: [
 					{
-						from: `plugins/**/*.js`,
+						from: `${ sourcePath }/**/*.js`,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.js$/, '.min.js' ),
 						// Exclude already-minified files and those in the build directory
@@ -59,7 +71,7 @@ const minifyPluginAssets = () => {
 						},
 					},
 					{
-						from: `plugins/**/*.css`,
+						from: `${ sourcePath }/**/*.css`,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.css$/, '.min.css' ),
 						transform: {
@@ -73,7 +85,7 @@ const minifyPluginAssets = () => {
 				],
 			} ),
 			new WebpackBar( {
-				name: `Minifying Plugin Assets`,
+				name: `Minifying Assets for ${ env.plugin ?? 'All Plugins' }`,
 				color: '#f5e0dc',
 			} ),
 		],
