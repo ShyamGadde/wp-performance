@@ -62,18 +62,19 @@ const minifyPluginAssets = ( env ) => {
 			new CopyWebpackPlugin( {
 				patterns: [
 					{
+						// NOTE: Automatically minifies JavaScript files with Terser during the copy process.
 						from: `${ sourcePath }/**/*.js`,
-						noErrorOnMissing: true,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.js$/, '.min.js' ),
 						// Exclude already-minified files and those in the build directory
 						globOptions: {
 							ignore: [ '**/build/**', '**/*.min.js' ],
 						},
+						// Prevents errors for plugins without JavaScript files.
+						noErrorOnMissing: true,
 					},
 					{
 						from: `${ sourcePath }/**/*.css`,
-						noErrorOnMissing: true,
 						to: ( { absoluteFilename } ) =>
 							absoluteFilename.replace( /\.css$/, '.min.css' ),
 						transform: {
@@ -83,6 +84,7 @@ const minifyPluginAssets = ( env ) => {
 						globOptions: {
 							ignore: [ '**/build/**', '**/*.min.css' ],
 						},
+						noErrorOnMissing: true,
 					},
 				],
 			} ),
@@ -120,6 +122,7 @@ const optimizationDetective = ( env ) => {
 					{
 						from: `${ source }/dist/web-vitals.js`,
 						to: `${ destination }/build/web-vitals.js`,
+						// Ensures the file is copied without minification, preserving its original form.
 						info: { minimized: true },
 					},
 					{
@@ -211,6 +214,7 @@ const buildPlugin = ( env ) => {
 	const buildDir = path.resolve( __dirname, 'build' );
 	const to = path.resolve( buildDir, env.plugin );
 	const from = path.resolve( __dirname, 'plugins', env.plugin );
+	// Ensures minification and the plugin's build process (if defined) run before building the plugin.
 	const dependencies = [ 'minify-plugin-assets' ];
 
 	if ( pluginsWithBuild.includes( env.plugin ) ) {
