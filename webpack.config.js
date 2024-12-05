@@ -218,7 +218,7 @@ const buildPlugin = ( env ) => {
 	const dependencies = [ 'minify-plugin-assets' ];
 
 	if ( pluginsWithBuild.includes( env.plugin ) ) {
-		dependencies.push( `${ env.plugin }` );
+		dependencies.push( env.plugin );
 	}
 
 	return {
