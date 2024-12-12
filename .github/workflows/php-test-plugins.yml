@@ -16,6 +16,7 @@ on:
       - 'tests/multisite.xml'
       - 'composer.json'
       - 'composer.lock'
+      - 'webpack.config.js'
   pull_request:
     # Only run if PHP-related files changed.
     paths:
@@ -28,6 +29,7 @@ on:
       - 'tests/multisite.xml'
       - 'composer.json'
       - 'composer.lock'
+      - 'webpack.config.js'
     types:
       - opened
       - reopened
