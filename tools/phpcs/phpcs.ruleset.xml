@@ -113,6 +113,14 @@
 		<exclude name="SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingTraversableTypeHintSpecification" /><!-- TODO: Investigate this -->
 	</rule>
 
+	<!-- Do no apply for custom sniffs. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>./Sniffs/*</exclude-pattern>
+	</rule>
+	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
+		<exclude-pattern>./Sniffs/*</exclude-pattern>
+	</rule>
+
 	<!-- Exclude built plugins and built assets in plugins. -->
 	<exclude-pattern>./build/*</exclude-pattern>
 
