@@ -2,7 +2,9 @@
 <ruleset name="WPP-DominantColorImages">
 	<description>WordPress Coding Standards for Image Placeholders Plugin</description>
 
-	<rule ref="../../tools/phpcs/phpcs.ruleset.xml"/>
+	<rule ref="../../tools/phpcs/phpcs.ruleset.xml">
+		<exclude name="WPP.PHP.RestrictedEmptyConstruct.EmptyConstructUsage" />
+	</rule>
 
 	<config name="text_domain" value="dominant-color-images,default"/>
 

@@ -1,7 +1,10 @@
 <?xml version="1.0"?>
 <ruleset name="WPP-PerformanceLab">
 	<description>WordPress Coding Standards for the Performance Lab Plugin</description>
-	<rule ref="../../tools/phpcs/phpcs.ruleset.xml"/>
+
+	<rule ref="../../tools/phpcs/phpcs.ruleset.xml">
+		<exclude name="WPP.PHP.RestrictedEmptyConstruct.EmptyConstructUsage" />
+	</rule>
 
 	<config name="text_domain" value="performance-lab,default"/>
 
