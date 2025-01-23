@@ -78,17 +78,33 @@ jobs:
           echo "Changed files:"
           echo "$CHANGED_FILES"
 
-          declare -a AFFECTED_PLUGINS=()
+          # Check for global changes (any file outside plugins/).
+          GLOBAL_CHANGES=false
           for FILE in $CHANGED_FILES; do
-            if [[ "$FILE" == plugins/* ]]; then
-              PLUGIN_NAME=$(echo "$FILE" | cut -d'/' -f2)
-              if [[ ! " ${AFFECTED_PLUGINS[@]} " =~ " ${PLUGIN_NAME} " ]]; then
-                AFFECTED_PLUGINS+=("$PLUGIN_NAME")
-              fi
+            if [[ "$FILE" != plugins/* ]]; then
+              GLOBAL_CHANGES=true
+              break
             fi
           done
 
-          echo "Plugins with changes: ${AFFECTED_PLUGINS[*]}"
+          if [ "$GLOBAL_CHANGES" = true ]; then
+            # Test all plugins if global changes detected.
+            AFFECTED_PLUGINS=($(ls plugins))
+            echo "Global changes detected; testing all plugins: ${AFFECTED_PLUGINS[*]}"
+          else
+            # Extract affected plugins.
+            declare -a AFFECTED_PLUGINS=()
+            for FILE in $CHANGED_FILES; do
+              if [[ "$FILE" == plugins/* ]]; then
+                PLUGIN_NAME=$(echo "$FILE" | cut -d'/' -f2)
+                if [[ ! " ${AFFECTED_PLUGINS[@]} " =~ " ${PLUGIN_NAME} " ]]; then
+                  AFFECTED_PLUGINS+=("$PLUGIN_NAME")
+                fi
+              fi
+            done
+
+
+          fi
 
           # Output the list of plugins to test.
           echo "plugins=${AFFECTED_PLUGINS[*]}" >> $GITHUB_OUTPUT
