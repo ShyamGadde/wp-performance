@@ -71,7 +71,7 @@ jobs:
           for FILE in $CHANGED_FILES; do
             if [[ "$FILE" == plugins/* ]]; then
               PLUGIN_NAME=$(echo "$FILE" | cut -d'/' -f2)
-              if [[ ! "${AFFECTED_PLUGINS[@]}" =~ "${PLUGIN_NAME}" ]]; then
+              if [[ ! " ${AFFECTED_PLUGINS[@]} " =~ " ${PLUGIN_NAME} " ]]; then
                 AFFECTED_PLUGINS+=("$PLUGIN_NAME")
               fi
             fi
