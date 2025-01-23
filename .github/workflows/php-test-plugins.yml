@@ -92,7 +92,7 @@ jobs:
             AFFECTED_PLUGINS=($(ls plugins))
             echo "Global changes detected; testing all plugins: ${AFFECTED_PLUGINS[*]}"
           else
-            # Extract affected plugins.
+            # Extract affected plugins and their dependencies.
             declare -a AFFECTED_PLUGINS=()
             for FILE in $CHANGED_FILES; do
               if [[ "$FILE" == plugins/* ]]; then
@@ -103,7 +103,22 @@ jobs:
               fi
             done
 
+            # Define plugin dependencies (e.g., optimization-detective triggers others).
+            declare -A PLUGIN_DEPENDENCIES=(
+              ["optimization-detective"]="embed-optimizer image-prioritizer"
+            )
 
+            # Add dependent plugins to the list.
+            for PLUGIN in "${AFFECTED_PLUGINS[@]}"; do
+              if [[ -n "${PLUGIN_DEPENDENCIES[$PLUGIN]}" ]]; then
+                DEPENDENCIES=(${PLUGIN_DEPENDENCIES[$PLUGIN]})
+                for DEP in "${DEPENDENCIES[@]}"; do
+                  if [[ ! " ${AFFECTED_PLUGINS[@]} " =~ " ${DEP} " ]]; then
+                    AFFECTED_PLUGINS+=("$DEP")
+                  fi
+                done
+              fi
+            done
           fi
 
           # Output the list of plugins to test.
