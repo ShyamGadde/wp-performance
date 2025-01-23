@@ -57,6 +57,8 @@ jobs:
     steps:
       - uses: styfle/cancel-workflow-action@0.12.1
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for accurate merge-base resolution.
       - name: Determine affected plugins
         id: affected-plugins
         env:
