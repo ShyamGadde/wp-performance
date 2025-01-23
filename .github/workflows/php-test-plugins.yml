@@ -119,6 +119,10 @@ jobs:
                 done
               fi
             done
+
+            # Remove duplicate entries.
+            AFFECTED_PLUGINS=($(echo "${AFFECTED_PLUGINS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+            echo "Plugins with changes: ${AFFECTED_PLUGINS[*]}"
           fi
 
           # Output the list of plugins to test.
