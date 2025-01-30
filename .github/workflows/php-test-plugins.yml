@@ -60,71 +60,63 @@ jobs:
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v45
+        with:
+          files_yaml: |
+            plugins:
+              - 'plugins/**'
+            config:
+              - '.github/workflows/php-test-plugins.yml'
+              - '.wp-env.json'
+              - '**/package.json'
+              - 'package-lock.json'
+              - 'phpunit.xml.dist'
+              - 'composer.json'
+              - 'composer.lock'
       - name: Get changed plugins
         id: changed-plugins
-        env:
-          GITHUB_EVENT_NAME: ${{ github.event_name }}
         run: |
-          # For push to 'trunk' or 'release/**' events, test all plugins regardless of changes.
-          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+          if [[ "${{ github.event_name }}" == "push" || "${{ steps.changed-files.outputs.config_any_changed }}" == "true" ]]; then
             ALL_CHANGED_PLUGINS=($(ls plugins))
-            echo "Event: $GITHUB_EVENT_NAME - Running tests for all plugins. Affected plugins: ${ALL_CHANGED_PLUGINS[*]}"
             echo "all_changed_plugins=${ALL_CHANGED_PLUGINS[*]}" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          ALL_CHANGED_FILES=${{ steps.changed-files.outputs.all_changed_files }}
+          ALL_CHANGED_FILES="${{ steps.changed-files.outputs.plugins_all_changed_files }}"
           echo "All Changed files:"
           echo "$ALL_CHANGED_FILES"
 
-          # Check for global changes (any file outside plugins/).
-          GLOBAL_CHANGES=false
+          # Extract affected plugins.
+          declare -a ALL_CHANGED_PLUGINS=()
           for FILE in $ALL_CHANGED_FILES; do
-            if [[ "$FILE" != plugins/* ]]; then
-              GLOBAL_CHANGES=true
-              break
+            if [[ "$FILE" == plugins/* ]]; then
+              PLUGIN_NAME=$(echo "$FILE" | cut -d'/' -f2)
+              if [[ ! " ${ALL_CHANGED_PLUGINS[@]} " =~ " ${PLUGIN_NAME} " ]]; then
+                ALL_CHANGED_PLUGINS+=("$PLUGIN_NAME")
+              fi
             fi
           done
 
-          if [ "$GLOBAL_CHANGES" = true ]; then
-            # Test all plugins if global changes detected.
-            ALL_CHANGED_PLUGINS=($(ls plugins))
-            echo "Global changes detected; testing all plugins: ${ALL_CHANGED_PLUGINS[*]}"
-          else
-            # Extract affected plugins and their dependencies.
-            declare -a ALL_CHANGED_PLUGINS=()
-            for FILE in $ALL_CHANGED_FILES; do
-              if [[ "$FILE" == plugins/* ]]; then
-                PLUGIN_NAME=$(echo "$FILE" | cut -d'/' -f2)
-                if [[ ! " ${ALL_CHANGED_PLUGINS[@]} " =~ " ${PLUGIN_NAME} " ]]; then
-                  ALL_CHANGED_PLUGINS+=("$PLUGIN_NAME")
+          # Define plugin dependencies (e.g., optimization-detective triggers others).
+          declare -A PLUGIN_DEPENDENCIES=(
+            ["optimization-detective"]="embed-optimizer image-prioritizer"
+          )
+
+          # Add dependent plugins to the list.
+          for PLUGIN in "${ALL_CHANGED_PLUGINS[@]}"; do
+            if [[ -n "${PLUGIN_DEPENDENCIES[$PLUGIN]}" ]]; then
+              DEPENDENCIES=(${PLUGIN_DEPENDENCIES[$PLUGIN]})
+              for DEP in "${DEPENDENCIES[@]}"; do
+                if [[ ! " ${ALL_CHANGED_PLUGINS[@]} " =~ " ${DEP} " ]]; then
+                  ALL_CHANGED_PLUGINS+=("$DEP")
                 fi
-              fi
-            done
+              done
+            fi
+          done
 
-            # Define plugin dependencies (e.g., optimization-detective triggers others).
-            declare -A PLUGIN_DEPENDENCIES=(
-              ["optimization-detective"]="embed-optimizer image-prioritizer"
-            )
+          # Sort entries.
+          ALL_CHANGED_PLUGINS=($(echo "${ALL_CHANGED_PLUGINS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+          echo "Plugins with changes: ${ALL_CHANGED_PLUGINS[*]}"
 
-            # Add dependent plugins to the list.
-            for PLUGIN in "${ALL_CHANGED_PLUGINS[@]}"; do
-              if [[ -n "${PLUGIN_DEPENDENCIES[$PLUGIN]}" ]]; then
-                DEPENDENCIES=(${PLUGIN_DEPENDENCIES[$PLUGIN]})
-                for DEP in "${DEPENDENCIES[@]}"; do
-                  if [[ ! " ${ALL_CHANGED_PLUGINS[@]} " =~ " ${DEP} " ]]; then
-                    ALL_CHANGED_PLUGINS+=("$DEP")
-                  fi
-                done
-              fi
-            done
-
-            # Remove duplicate entries.
-            ALL_CHANGED_PLUGINS=($(echo "${ALL_CHANGED_PLUGINS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
-            echo "Plugins with changes: ${ALL_CHANGED_PLUGINS[*]}"
-          fi
-
-          # Output the list of plugins to test.
           echo "all_changed_plugins=${ALL_CHANGED_PLUGINS[*]}" >> $GITHUB_OUTPUT
       - name: Setup Node.js (.nvmrc)
         uses: actions/setup-node@v4
