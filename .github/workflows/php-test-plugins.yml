@@ -89,9 +89,6 @@ jobs:
             ALL_CHANGED_PLUGINS+=("$PLUGIN_NAME")
           done
 
-          # Print the list of changed plugins.
-          echo "Plugins with changes: ${ALL_CHANGED_PLUGINS[*]}"
-
           # Define and add plugin dependencies (e.g., optimization-detective triggers others).
           declare -A PLUGIN_DEPENDENCIES=(
             ["optimization-detective"]="embed-optimizer image-prioritizer"
@@ -106,10 +103,7 @@ jobs:
             fi
           done
 
-          # Sort entries.
           ALL_CHANGED_PLUGINS=($(echo "${ALL_CHANGED_PLUGINS[@]}" | tr ' ' '\n' | sort | tr '\n' ' '))
-          echo "Plugins with changes: ${ALL_CHANGED_PLUGINS[*]}"
-
           echo "all_changed_plugins=${ALL_CHANGED_PLUGINS[*]}" >> $GITHUB_OUTPUT
       - name: Setup Node.js (.nvmrc)
         uses: actions/setup-node@v4
